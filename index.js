@@ -18,6 +18,17 @@ connectDB();
 const app = express();
 app.use(express.json());
 
+import cors from "cors";
+
+// Enable CORS for all origins in development. For production, be specific
+const corsOptions = {
+  origin: "*", // Or specify 'http://localhost:3000' if you only want this to work in your localhost
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+app.use(cors(corsOptions)); // apply cors middleware
+
 app.use("/products", productsRoute);
 app.use("/categories", CategoryRoute);
 app.use("/suppliers", SupplierRoute);
