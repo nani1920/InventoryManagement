@@ -11,6 +11,7 @@ import CategoryRoute from "./src/routes/categoryRoutes.js";
 import SupplierRoute from "./src/routes/supplierRoutes.js";
 import StockTransactionRoute from "./src/routes/stockTransactionRoutes.js";
 import LowStockAlertRoute from "./src/routes/lowStockAlertRoutes.js";
+import Product from "./src/models/productModel.js";
 // import Category from "./src/models/categoryModel.js";
 // import Supplier from "./src/models/suppliersModel.js";
 connectDB();
@@ -147,14 +148,241 @@ const suppliers = [
   },
 ];
 
-// app.get("/suppliers", async (request, response) => {
-//   try {
-//     const categoriesSet = await Supplier.insertMany(suppliers);
-//     response.send("Successfully");
-//   } catch (e) {
-//     console.log(e.message);
-//   }
-// });
+const newProducts = [
+  {
+    name: "Wireless Bluetooth Headphones",
+    price: 89.99,
+    stockQuantity: 150,
+    reorderLevel: 50,
+    category: "6795c4e1a5db310474f7784d", // Laptops
+    supplier: "6795c5a5fc442f56302a3c93", // TechWorld
+  },
+  {
+    name: "Organic Green Tea",
+    price: 5.99,
+    stockQuantity: 200,
+    reorderLevel: 30,
+    category: "6795c4e1a5db310474f7784e", // Smartphones
+    supplier: "6795c5a5fc442f56302a3c94", // Gizmo Electronics
+  },
+  {
+    name: "Smartwatch Fitness Tracker",
+    price: 120.0,
+    stockQuantity: 80,
+    reorderLevel: 20,
+    category: "6795c4e1a5db310474f7784f", // Tablets
+    supplier: "6795c5a5fc442f56302a3c95", // Digital Gadgets
+  },
+  {
+    name: "Leather Wallet",
+    price: 39.99,
+    stockQuantity: 250,
+    reorderLevel: 50,
+    category: "6795c4e1a5db310474f77850", // Headphones
+    supplier: "6795c5a5fc442f56302a3c96", // SmartTech Suppliers
+  },
+  {
+    name: "Gaming Laptop",
+    price: 1499.99,
+    stockQuantity: 50,
+    reorderLevel: 10,
+    category: "6795c4e1a5db310474f77851", // Smart Watches
+    supplier: "6795c5a5fc442f56302a3c97", // ElectroHub
+  },
+  {
+    name: "Air Fryer",
+    price: 79.99,
+    stockQuantity: 100,
+    reorderLevel: 25,
+    category: "6795c4e1a5db310474f77852", // TVs
+    supplier: "6795c5a5fc442f56302a3c98", // GadgetMasters
+  },
+  {
+    name: "Cotton Bed Sheets Set",
+    price: 35.5,
+    stockQuantity: 180,
+    reorderLevel: 40,
+    category: "6795c4e1a5db310474f77853", // Cameras
+    supplier: "6795c5a5fc442f56302a3c99", // NextGen Electronics
+  },
+  {
+    name: "Portable Speaker",
+    price: 49.99,
+    stockQuantity: 300,
+    reorderLevel: 100,
+    category: "6795c4e1a5db310474f77854", // Home Appliances
+    supplier: "6795c5a5fc442f56302a3c9a", // Innovative Solutions
+  },
+  {
+    name: "Electric Toothbrush",
+    price: 29.99,
+    stockQuantity: 220,
+    reorderLevel: 50,
+    category: "6795c4e1a5db310474f77855", // Gaming Consoles
+    supplier: "6795c5a5fc442f56302a3c9b", // FutureTech Supplies
+  },
+  {
+    name: "Yoga Mat",
+    price: 18.99,
+    stockQuantity: 150,
+    reorderLevel: 30,
+    category: "6795c4e1a5db310474f77856", // Accessories
+    supplier: "6795c5a5fc442f56302a3c9c", // Prime Electronics
+  },
+  {
+    name: "Bluetooth Speaker",
+    price: 45.99,
+    stockQuantity: 150,
+    reorderLevel: 30,
+    category: "6795c4e1a5db310474f7784d", // Laptops
+    supplier: "6795c5a5fc442f56302a3c93", // TechWorld
+  },
+  {
+    name: "Stainless Steel Water Bottle",
+    price: 19.99,
+    stockQuantity: 200,
+    reorderLevel: 50,
+    category: "6795c4e1a5db310474f7784e", // Smartphones
+    supplier: "6795c5a5fc442f56302a3c94", // Gizmo Electronics
+  },
+  {
+    name: "Winter Jacket",
+    price: 129.99,
+    stockQuantity: 75,
+    reorderLevel: 20,
+    category: "6795c4e1a5db310474f7784f", // Tablets
+    supplier: "6795c5a5fc442f56302a3c95", // Digital Gadgets
+  },
+  {
+    name: "Smartphone",
+    price: 899.99,
+    stockQuantity: 100,
+    reorderLevel: 15,
+    category: "6795c4e1a5db310474f77850", // Headphones
+    supplier: "6795c5a5fc442f56302a3c96", // SmartTech Suppliers
+  },
+  {
+    name: "Running Shoes",
+    price: 79.99,
+    stockQuantity: 180,
+    reorderLevel: 40,
+    category: "6795c4e1a5db310474f77852", // TVs
+    supplier: "6795c5a5fc442f56302a3c97", // ElectroHub
+  },
+  {
+    name: "Electric Kettle",
+    price: 25.99,
+    stockQuantity: 250,
+    reorderLevel: 75,
+    category: "6795c4e1a5db310474f77853", // Cameras
+    supplier: "6795c5a5fc442f56302a3c98", // GadgetMasters
+  },
+  {
+    name: "Vitamins Supplement",
+    price: 12.99,
+    stockQuantity: 300,
+    reorderLevel: 50,
+    category: "6795c4e1a5db310474f77854", // Home Appliances
+    supplier: "6795c5a5fc442f56302a3c99", // NextGen Electronics
+  },
+  {
+    name: "Office Chair",
+    price: 150.0,
+    stockQuantity: 70,
+    reorderLevel: 15,
+    category: "6795c4e1a5db310474f77855", // Gaming Consoles
+    supplier: "6795c5a5fc442f56302a3c9a", // Innovative Solutions
+  },
+  {
+    name: "Bluetooth Mouse",
+    price: 19.49,
+    stockQuantity: 180,
+    reorderLevel: 60,
+    category: "6795c4e1a5db310474f77856", // Accessories
+    supplier: "6795c5a5fc442f56302a3c9b", // FutureTech Supplies
+  },
+  {
+    name: "Backpack",
+    price: 45.0,
+    stockQuantity: 250,
+    reorderLevel: 50,
+    category: "6795c4e1a5db310474f7784d", // Laptops
+    supplier: "6795c5a5fc442f56302a3c9c", // Prime Electronics
+  },
+  {
+    name: "Laptop Stand",
+    price: 35.99,
+    stockQuantity: 120,
+    reorderLevel: 25,
+    category: "6795c4e1a5db310474f7784e", // Smartphones
+    supplier: "6795c5a5fc442f56302a3c93", // TechWorld
+  },
+  {
+    name: "Coffee Maker",
+    price: 69.99,
+    stockQuantity: 150,
+    reorderLevel: 30,
+    category: "6795c4e1a5db310474f7784f", // Tablets
+    supplier: "6795c5a5fc442f56302a3c94", // Gizmo Electronics
+  },
+  {
+    name: "Fridge",
+    price: 499.99,
+    stockQuantity: 50,
+    reorderLevel: 10,
+    category: "6795c4e1a5db310474f77850", // Headphones
+    supplier: "6795c5a5fc442f56302a3c95", // Digital Gadgets
+  },
+  {
+    name: "Sunglasses",
+    price: 29.99,
+    stockQuantity: 300,
+    reorderLevel: 100,
+    category: "6795c4e1a5db310474f77851", // Smart Watches
+    supplier: "6795c5a5fc442f56302a3c96", // SmartTech Suppliers
+  },
+  {
+    name: "Cookware Set",
+    price: 120.0,
+    stockQuantity: 85,
+    reorderLevel: 15,
+    category: "6795c4e1a5db310474f77852", // TVs
+    supplier: "6795c5a5fc442f56302a3c97", // ElectroHub
+  },
+  {
+    name: "Wireless Charger",
+    price: 39.99,
+    stockQuantity: 200,
+    reorderLevel: 50,
+    category: "6795c4e1a5db310474f77853", // Cameras
+    supplier: "6795c5a5fc442f56302a3c98", // GadgetMasters
+  },
+  {
+    name: "Electric Fan",
+    price: 45.0,
+    stockQuantity: 90,
+    reorderLevel: 20,
+    category: "6795c4e1a5db310474f77854", // Home Appliances
+    supplier: "6795c5a5fc442f56302a3c99", // NextGen Electronics
+  },
+  {
+    name: "Bicycle",
+    price: 299.99,
+    stockQuantity: 60,
+    reorderLevel: 10,
+    category: "6795c4e1a5db310474f77855", // Gaming Consoles
+    supplier: "6795c5a5fc442f56302a3c9a", // Innovative Solutions
+  },
+];
+
+app.get("/addProducts", async (request, response) => {
+  try {
+    const categoriesSet = await Product.insertMany(newProducts);
+    response.send("Successfully");
+  } catch (e) {
+    console.log(e.message);
+  }
+});
 
 app.listen(process.env.PORT, () => {
   try {
