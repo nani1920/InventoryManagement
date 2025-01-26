@@ -17,12 +17,11 @@ connectDB();
 const app = express();
 app.use(express.json());
 
+app.use("/products", productsRoute);
 app.use("/categories", CategoryRoute);
 app.use("/suppliers", SupplierRoute);
 app.use("/transactions", StockTransactionRoute);
 app.use("/low-stock-alerts", LowStockAlertRoute);
-
-app.use("/products", productsRoute);
 
 const categories = [
   {

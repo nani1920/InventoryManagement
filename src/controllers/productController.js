@@ -1,62 +1,7 @@
 /** @format */
-
-import mongoose, { modelNames } from "mongoose";
+import Product from "../models/productModel.js";
 import Category from "../models/categoryModel.js";
 import Supplier from "../models/suppliersModel.js";
-import Product from "../models/productModel.js";
-
-// export const postProduct = async (request, response) => {
-//   const { name, price, stockQuantity, reorderLevel, category, supplier } =
-//     request.body;
-
-//   try {
-//     if (name.trim() === "" || !name) {
-//       return response.status(400).json({ message: "Invalid-name field" });
-//     }
-
-//     if (!price || isNaN(price)) {
-//       return response.status(400).json({ message: "Invalid-price field" });
-//     }
-
-//     if (stockQuantity == null || stockQuantity === "" || isNaN(stockQuantity)) {
-//       return response
-//         .status(400)
-//         .json({ message: "Invalid-stockQuantity field" });
-//     }
-
-//     if (reorderLevel == null || reorderLevel === "" || isNaN(reorderLevel)) {
-//       return response
-//         .status(400)
-//         .json({ message: "Invalid-reorderLevel field" });
-//     }
-
-//     if (category.trim() === "" || !category) {
-//       return response.status(400).json({ message: "Invalid-category field" });
-//     }
-
-//     if (supplier.trim() === "" || !supplier) {
-//       return response.status(400).json({ message: "Invalid-supplier field" });
-//     }
-
-//     const newProduct = new Product({
-//       name,
-//       price,
-//       stockQuantity,
-//       reorderLevel,
-//       category,
-//       supplier,
-//     });
-
-//     const savedProduct = await newProduct.save();
-
-//     response.status(201).json({
-//       message: "Product created successfully",
-//       createdProduct: savedProduct,
-//     });
-//   } catch (e) {
-//     response.status(500).json({ message: e.message });
-//   }
-// };
 
 export const postProduct = async (request, response) => {
   const {
@@ -69,6 +14,7 @@ export const postProduct = async (request, response) => {
   } = request.body;
 
   try {
+    // Find the category by name
     const category = await Category.findOne({ name: categoryName });
     if (!category) {
       return response
@@ -76,7 +22,7 @@ export const postProduct = async (request, response) => {
         .json({ message: `Category ${categoryName} not found` });
     }
 
-    // Find or create the Supplier
+    // Find the supplier by name
     const supplier = await Supplier.findOne({ name: supplierName });
     if (!supplier) {
       return response
@@ -84,19 +30,19 @@ export const postProduct = async (request, response) => {
         .json({ message: `Supplier ${supplierName} not found` });
     }
 
-    // Create a new product and link category & supplier
+    // Create the product with references to category and supplier
     const newProduct = new Product({
       name,
       price,
       stockQuantity,
       reorderLevel,
-      category: category._id, // Use the ObjectId of the found category
-      supplier: supplier._id, // Use the ObjectId of the found supplier
+      category: category._id, // Link to the found category
+      supplier: supplier._id, // Link to the found supplier
     });
 
     const savedProduct = await newProduct.save();
 
-    // Return success response
+    // Send success response
     response.status(201).json({
       message: "Product created successfully",
       createdProduct: savedProduct,
@@ -106,105 +52,114 @@ export const postProduct = async (request, response) => {
   }
 };
 
+// GET /api/products
+// Fetch all products in the inventory.
 export const getAllProducts = async (request, response) => {
   try {
-    const blogs = await Blog.find().populate(
-      "assignedEditorId",
-      "username role"
-    );
-    if (!blogs) {
-      return response.status(404).json({ message: "No Blogs Found" });
+    const products = await Product.find()
+      .populate("category", "name") // Populating category name
+      .populate("supplier", "name"); // Populating supplier name
+    if (!products || products.length === 0) {
+      return response.status(404).json({ message: "No products found" });
     }
-    response.status(200).json({ blogs });
+    response.status(200).json(products);
   } catch (e) {
     response.status(500).json({ message: e.message });
   }
 };
 
-export const getProduct = async (request, response) => {
-  const { blogId } = request.params;
-  if (!mongoose.Types.ObjectId.isValid(blogId)) {
-    return response.status(400).json({ message: "Invalid Blog ID format" });
-  }
+// GET /api/products/:id
+// Get details of a specific product by its ID.
+export const getProductById = async (request, response) => {
+  const { id } = request.params;
+
   try {
-    const blogData = await Blog.findOne({ _id: blogId }).populate(
-      "assignedEditorId",
-      "username role"
-    );
-
-    if (!blogData) {
-      return response.status(404).json({ message: "Blog not found" });
+    const product = await Product.findById(id)
+      .populate("category", "name")
+      .populate("supplier", "name");
+    if (!product) {
+      return response.status(404).json({ message: "Product not found" });
     }
-    response.status(200).json(blogData);
+    response.status(200).json(product);
   } catch (e) {
     response.status(500).json({ message: e.message });
   }
 };
 
+// PUT /api/products/:id
+// Update an existing product's details (e.g., name, price, quantity).
 export const updateProduct = async (request, response) => {
-  const { title, content } = request.body;
-  const { blogId } = request.params;
-  //Used to check valid format
-  if (!mongoose.Types.ObjectId.isValid(blogId)) {
-    return response.status(400).json({ message: "Invalid Blog ID format" });
-  }
+  const { id } = request.params;
+  const {
+    name,
+    price,
+    stockQuantity,
+    reorderLevel,
+    categoryName,
+    supplierName,
+  } = request.body;
+
   try {
-    if (title.trim() === "" || !title) {
-      return response.status(400).json({ message: "Invalid-title field" });
-    }
-    if (content.trim() === "" || !content) {
-      return response.status(400).json({ message: "Invalid-content field" });
-    }
-    const user = request.user;
-
-    const blog = await Blog.findById(blogId);
-    if (!blog) {
-      return response.status(404).json({ message: "Blog not found" });
+    // Find the category by name
+    const category = await Category.findOne({ name: categoryName });
+    if (!category) {
+      return response
+        .status(400)
+        .json({ message: `Category ${categoryName} not found` });
     }
 
-    //check blog is particularly assigned to an editor
-    if (user.role !== "admin" && !blog.assignedEditorId) {
-      return response.status(403).json({
-        message: "Blog has not been assigned to an editor yet",
-      });
+    // Find the supplier by name
+    const supplier = await Supplier.findOne({ name: supplierName });
+    if (!supplier) {
+      return response
+        .status(400)
+        .json({ message: `Supplier ${supplierName} not found` });
     }
 
-    // check blog is assigned to requested editor
-    if (
-      user.role !== "admin" &&
-      blog.assignedEditorId.toString() !== user._id.toString()
-    ) {
-      return response.status(403).json({
-        message:
-          "Access Denied - You can only edit blogs which are assigned to you",
-      });
+    // Find the product by ID
+    const product = await Product.findById(id);
+    if (!product) {
+      return response.status(404).json({ message: "Product not found" });
     }
-    blog.title = title;
-    blog.content = content;
-    await blog.save();
-    response
-      .status(200)
-      .json({ message: "Blog Updated Successfully", updatedBlog: blog });
+
+    // Update product details
+    product.name = name || product.name;
+    product.price = price || product.price;
+    product.stockQuantity = stockQuantity || product.stockQuantity;
+    product.reorderLevel = reorderLevel || product.reorderLevel;
+    product.category = category._id; // Link to the found category
+    product.supplier = supplier._id; // Link to the found supplier
+
+    const updatedProduct = await product.save();
+
+    response.status(200).json({
+      message: "Product updated successfully",
+      updatedProduct,
+    });
   } catch (e) {
-    return response.status(500).json({ message: e.message });
-    console.log(e);
+    response.status(500).json({ message: e.message });
   }
 };
 
+// DELETE /api/products/:id
+// Delete a product from the inventory.
 export const deleteProduct = async (request, response) => {
-  const { blogId } = request.params;
-  if (!mongoose.Types.ObjectId.isValid(blogId)) {
-    return response.status(400).json({ message: "Invalid blog ID format" });
-  }
+  const { id } = request.params;
+
   try {
-    const deletedBlog = await Blog.findByIdAndDelete({ _id: blogId });
-    if (!deletedBlog) {
-      return response.status(404).json({ message: "Blog not found" });
+    const product = await Product.findById(id);
+    if (!product) {
+      return response.status(404).json({ message: "Product not found" });
     }
-    response
-      .status(200)
-      .json({ message: "Blog deleted Successfully", deletedBlog });
+
+    // Delete the product
+    await product.remove();
+
+    response.status(200).json({
+      message: "Product deleted successfully",
+      deletedProduct: product,
+    });
   } catch (e) {
-    return response.status(500).json({ message: e.message });
+    response.status(500).json({ message: e.message });
   }
 };
